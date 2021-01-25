@@ -28,7 +28,7 @@
 #include "config.h"
 
 // Enumerate ALL outputs (regardless of availability)
-enum Outputs {none, null, ao, oss, disk, esound, qsa, sdl, alsa};
+enum Outputs {none, null, ao, oss, disk, esound, qsa, sdl, alsa, serial};
 
 #define DEFAULT_DRIVER none
 
@@ -37,6 +37,13 @@ enum Outputs {none, null, ao, oss, disk, esound, qsa, sdl, alsa};
 #include "null.h"
 #undef DEFAULT_DRIVER
 #define DEFAULT_DRIVER null
+#endif
+
+// OPL3 Duo! over serial
+#ifdef DRIVER_SERIAL
+#include "serial.h"
+#undef DEFAULT_DRIVER
+#define DEFAULT_DRIVER serial
 #endif
 
 // Disk writer

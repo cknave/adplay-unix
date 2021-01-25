@@ -73,6 +73,7 @@
 /***** Typedefs *****/
 
 typedef enum {
+    	Emu_none,
 	Emu_Satoh,
 	Emu_Ken,
 	Emu_Woody,
@@ -91,7 +92,7 @@ static Copl		*opl = 0;
 /***** Configuration (and defaults) *****/
 
 static struct {
-  int			buf_size, freq, channels, bits, harmonic, message_level;
+  int			buf_size, freq, channels, bits, harmonic, message_level, baud;
   unsigned int		subsong;
   const char		*device;
   char			*userdb;
@@ -106,6 +107,7 @@ static struct {
   1, 16, 0,  // Else default to mono (until stereo w/ single OPL is fixed)
 #endif
   MSG_NOTE,
+  1000000,
   (unsigned int)-1,
   NULL,
   NULL,
@@ -150,6 +152,9 @@ static void usage()
 	 "ALSA driver (alsa) specific:\n"
 	 "  -d, --device=DEVICE        set sound device to DEVICE\n"
 	 "  -b, --buffer=SIZE          set output buffer size to SIZE\n\n"
+	 "OPL3 Duo!/serial (serial) specific:\n"
+	 "  -d, --device=DEVICE        set serial port to DEVICE\n"
+	 "  -B, --baud=BAUD            set baud rate\n"
 	 "Playback quality:\n"
 	 "  -8, --8bit                 8-bit sample quality\n"
 	 "      --16bit                16-bit sample quality\n"
@@ -203,6 +208,9 @@ static void usage()
 #ifdef DRIVER_ALSA
 	 "alsa "
 #endif
+#ifdef DRIVER_SERIAL
+         "serial "
+#endif
 	 "\n");
 }
 
@@ -221,6 +229,7 @@ static int decode_switches(int argc, char **argv)
     {"stereo", no_argument, NULL, '3'},		// stereo replay
     {"mono", no_argument, NULL, '2'},		// mono replay
     {"buffer", required_argument, NULL, 'b'},	// buffer size
+    {"baud", optional_argument, NULL, 'B'},	// baud rate
     {"device", required_argument, NULL, 'd'},	// device file
     {"instruments", no_argument, NULL, 'i'},	// show instruments
     {"realtime", no_argument, NULL, 'r'},	// realtime song info
@@ -247,6 +256,7 @@ static int decode_switches(int argc, char **argv)
       case '3': cfg.channels = 2; cfg.harmonic = 0; break;
       case '2': cfg.channels = 1; cfg.harmonic = 0; break;
       case 'b': cfg.buf_size = atoi(optarg); break;
+      case 'B': cfg.baud = atoi(optarg); break;
       case 'd': cfg.device = optarg; break;
       case 'i': cfg.showinsts = true; break;
       case 'r': cfg.songinfo = true; break;
@@ -271,6 +281,7 @@ static int decode_switches(int argc, char **argv)
 	else if(!strcmp(optarg,"alsa")) cfg.output = alsa;
 	else if(!strcmp(optarg,"sdl")) cfg.output = sdl;
 	else if(!strcmp(optarg,"ao")) cfg.output = ao;
+	else if(!strcmp(optarg,"serial")) cfg.output = serial;
 	else {
 	  message(MSG_ERROR, "unknown output method -- %s", optarg);
 	  exit(EXIT_FAILURE);
@@ -291,6 +302,13 @@ static int decode_switches(int argc, char **argv)
       case 'v': cfg.message_level++; break;
       }
   }
+
+#if DRIVER_SERIAL
+  // Force emulation off for serial
+  if(cfg.output == serial) {
+  	cfg.emutype = Emu_none;
+  }
+#endif
 
   return optind;
 }
@@ -510,6 +528,11 @@ int main(int argc, char **argv)
 #ifdef DRIVER_DISK
   case disk:
     player = new DiskWriter(opl, cfg.device, cfg.bits, cfg.channels, cfg.freq);
+    break;
+#endif
+#ifdef DRIVER_SERIAL
+  case serial:
+    player = new SerialPlayer(cfg.device, cfg.baud);
     break;
 #endif
 #ifdef DRIVER_ESOUND

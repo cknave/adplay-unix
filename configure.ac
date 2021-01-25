@@ -3,7 +3,7 @@ AC_INIT(adplay,1.9)
 AC_CONFIG_SRCDIR(src/adplay.cc)
 AC_CONFIG_FILES(Makefile src/Makefile doc/Makefile)
 AC_CANONICAL_TARGET
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([foreign])
 AM_CONFIG_HEADER(src/config.h)
 AM_PROG_LIBTOOL
 AC_LANG(C++)
@@ -99,6 +99,7 @@ AC_ARG_ENABLE([output-qsa],AC_HELP_STRING([--disable-output-qsa],[Disable QSA ou
 AC_ARG_ENABLE([output-sdl],AC_HELP_STRING([--disable-output-sdl],[Disable SDL output]))
 AC_ARG_ENABLE([output-alsa],AC_HELP_STRING([--disable-output-alsa],[Disable ALSA output]))
 AC_ARG_ENABLE([output-ao],AC_HELP_STRING([--disable-output-ao],[Disable AO output]))
+AC_ARG_ENABLE([output-serial],AC_HELP_STRING([--disable-output-serial],[Disable OPL3 Duo! over serial output]))
 # Check if we can compile the enabled drivers:
 # OSS driver
 if test ${enable_output_oss:=yes} = yes; then
@@ -115,6 +116,12 @@ if test ${enable_output_oss:=yes} = yes; then
                	enable_output_oss=no
                	AC_MSG_RESULT([not found -- OSS output disabled])
               ])
+fi
+
+# OPL3 Duo! over serial output
+if test ${enable_output_serial:=yes} = yes; then
+   AC_DEFINE(DRIVER_SERIAL,1,[Build serial output])
+   drivers=$drivers' serial.$(OBJEXT)'
 fi
 
 # AO output
@@ -202,14 +209,15 @@ echo "Configuration:"
 echo "Install path:             ${prefix}"
 echo ""
 echo "Build output mechanisms:"
-echo "OSS output (oss):         ${enable_output_oss}"
-echo "Null output (null):       ${enable_output_null}"
-echo "Disk writer (disk):       ${enable_output_disk}"
-echo "EsounD output (esound):   ${enable_output_esound}"
-echo "QSA output (qsa):         ${enable_output_qsa}"
-echo "SDL output (sdl):         ${enable_output_sdl}"
-echo "ALSA output (alsa):       ${enable_output_alsa}"
-echo "Libao output (ao):        ${enable_output_ao}"
+echo "OSS output (oss):          ${enable_output_oss}"
+echo "Null output (null):        ${enable_output_null}"
+echo "Disk writer (disk):        ${enable_output_disk}"
+echo "EsounD output (esound):    ${enable_output_esound}"
+echo "QSA output (qsa):          ${enable_output_qsa}"
+echo "SDL output (sdl):          ${enable_output_sdl}"
+echo "ALSA output (alsa):        ${enable_output_alsa}"
+echo "Libao output (ao):         ${enable_output_ao}"
+echo "OPL3 Duo!/serial (serial): ${enable_output_serial}"
 
 if test "x$exult_sdlok" = xyes; then
    echo ""

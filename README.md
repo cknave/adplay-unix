@@ -1,3 +1,22 @@
+# adplay-unix-serial
+
+This fork of [adplay-unix] includes a new player, [serial], that sends all
+register writes over a Linux serial port. This is intended to be used with an
+Arduino running [opl3serial] attached to an [OPL3 Duo!] board and requires the
+[adplug-serial] fork.
+
+Usage:
+
+    adplay -O serial -d /dev/ttyACM0 <file>
+
+[adplay-unix]: https://github.com/adplug/adplay-unix
+[serial]: src/serial.cc
+[opl3serial]: https://github.com/cknave/opl3serial
+[OPL3 Duo!]: https://cheerful.nl/OPL3Duo/index.html
+[adplug-serial]: https://github.com/cknave/adplug-serial
+
+---
+
 AdPlay/UNIX - UNIX console-based OPL2 audio player
 Copyright (C) 2001 - 2017 Simon Peter <dn.tlp@gmx.net>
 
@@ -13,9 +32,9 @@ Prerequisites
 -------------
 The following libraries are needed in order to compile this program:
 
-Library		Version
--------		-------
-AdPlug		>= 1.4, or >= 2.2 for full feature support
+|Library|Version|
+|-------|-------|
+|AdPlug |>= 1.4, or >= 2.2 for full feature support|
 
 git
 ---
